@@ -2,7 +2,7 @@
  * Socket Controller
  */
 
-const debug = require('debug')('battleships:socket_controller');
+const debug = require('debug')('battleships-server:socket_controller');
 let io = null; // socket.io server instance
 let rooms = []
 let nextUserId = 0
@@ -39,9 +39,14 @@ module.exports = function (socket, _io) {
 	io = _io;
 
 	io.on('connection', async () => {
-		console.log(`User ${socket.id} connected`)
-		console.log(`All clients: `, await io.allSockets())
+		debug(`User ${socket.id} connected`)
+		debug(`All clients: `, await io.allSockets())
+	})
+
+	socket.on('disconnect', () => {
+		debug(`User ${socket.id} disconnected`)
 	})
 
 	socket.on('joinGame', handleGameSearch)
+
 }
