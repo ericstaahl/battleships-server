@@ -13,8 +13,10 @@ let emptyRoomExists = false
 const handleGameSearch = function () {
 	// Check for empty room before creating a new one
 	emptyRoomExists = Object.values(rooms).find(room => Object.keys(room.users).length < 2)
-	// if the rooms object is empty or the rooms are all full, create a new room
+	// if the rooms object is empty or the rooms are all full, save a representation of a new room
 	if (rooms.length === 0 || !emptyRoomExists) {
+		// Create and join a room
+		this.join(`game${nextRoomId}`)
 		rooms[nextRoomId] = {
 			id: `game${nextRoomId}`,
 			users: {}
@@ -24,10 +26,17 @@ const handleGameSearch = function () {
 		// Add 1 to nextRoomId so that the next created room gets a unique identifier
 		nextRoomId++
 	}
+	else {
+		// Join a room
+		this.join(`game${currentRoomId}`)
+	}
 	console.log("Specific room" + rooms[currentRoomId].users)
 	rooms[currentRoomId].users[`user${nextUserId}`] = this.id
+	// Add 1 to nextUserId so that the next socket id gets a unique identifier
 	nextUserId++
 	console.log(rooms)
+	// Emit a message to the current user's room
+	io.in(`game${currentRoomId}`).emit("HiRoom")
 }
 
 /** 
