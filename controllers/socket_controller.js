@@ -30,11 +30,11 @@ const handleGameSearch = function () {
 		// Join a room
 		this.join(`game${currentRoomId}`)
 	}
-	console.log("Specific room" + rooms[currentRoomId].users)
+	debug("Specific room:", JSON.stringify(rooms[currentRoomId].users))
 	rooms[currentRoomId].users[`user${nextUserId}`] = this.id
 	// Add 1 to nextUserId so that the next socket id gets a unique identifier
 	nextUserId++
-	console.log(rooms)
+	debug(rooms)
 	// Emit a message to the current user's room
 	io.in(`game${currentRoomId}`).emit("HiRoom")
 }
