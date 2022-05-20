@@ -30,6 +30,7 @@ const handleGameSearch = function () {
 	else {
 		// Join a room
 		this.join(`game${currentRoomId}`)
+		io.in(`game${currentRoomId}`).emit("gameFound")
 	}
 	debug("Specific room:", JSON.stringify(rooms[currentRoomId].users))
 	// Save user in room
@@ -91,7 +92,6 @@ module.exports = function (socket, _io) {
 			debug("Rooms after deletion:", rooms)
 		}
 	})
-
 
 	socket.on('joinGame', handleGameSearch)
 
