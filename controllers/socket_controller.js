@@ -10,6 +10,18 @@ let nextRoomId = 0
 let currentRoomId = 0
 let emptyRoomExists = false
 
+const getRoomKey = (socket) => {
+	// get the object key of the room
+	const roomOfUser = Object.values(rooms).find(room => {
+		return room.users.hasOwnProperty(socket.id)
+	})
+	if (roomOfUser) {
+		// find the id of the room the user was in
+		return Object.keys(rooms).find(key => rooms[key] === roomOfUser)
+	}
+	return null
+}
+
 // Handle users searching for a game
 const handleGameSearch = function () {
 	// Check for empty room before creating a new one
@@ -66,31 +78,30 @@ module.exports = function (socket, _io) {
 	socket.on('disconnecting', () => {
 		// debug("Rooms user were in:", socket.rooms)
 		// debug("Rooms BEFORE leaving", io.sockets.adapter.rooms)
-		// Disconnect all the users from the rooms that the disconnected user was a part of
-		socket.rooms.forEach(room => {
-			io.in(room).emit("userLeft", "You win because your opponent disconnected")
-			io.socketsLeave(room)
-		})
+
+		// find the key of the room the user was in
+		const idOfRoom = getRoomKey(socket)
+		debug("ID of room on disconnecting:", idOfRoom)
+
+		debug("Room to disconnect:", rooms[idOfRoom]?.id)
+		// disconnect all users from the socket.io room (which deletes it)
+		if (idOfRoom) {
+			io.socketsLeave(rooms[idOfRoom].id)
+		}
 		debug("Rooms AFTER leaving", io.sockets.adapter.rooms)
 
 	})
 
 	socket.on('disconnect', () => {
 		debug(`User ${socket.id} disconnected`)
-		// find the room the user was in
-		const roomOfUser = Object.values(rooms).find(room => {
-			return room.users.hasOwnProperty(socket.id)
-		})
-		if (roomOfUser) {
-			// find the id the user was in
-			const idOfRoom = Object.keys(rooms).find(key => rooms[key] === roomOfUser)
-			// debug(idOfRoom)
-			// delete the room the user was  in
+		// find the key of the room the user was in
+		const idOfRoom = getRoomKey(socket)
+		// delete the room the user was in
+		if (idOfRoom) {
 			delete rooms[idOfRoom]
-			// rooms = rooms.filter(room => room.id !== roomOfUser.id)
-	
-			debug("Rooms after deletion:", rooms)
 		}
+
+		debug("Rooms after deletion:", rooms)
 	})
 
 	socket.on('joinGame', handleGameSearch)
