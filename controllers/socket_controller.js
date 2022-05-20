@@ -10,6 +10,7 @@ let nextRoomId = 0
 let currentRoomId = 0
 let emptyRoomExists = false
 
+// Handle users searching for a game
 const handleGameSearch = function () {
 	// Check for empty room before creating a new one
 	emptyRoomExists = Object.values(rooms).find(room => Object.keys(room.users).length < 2)
@@ -31,13 +32,22 @@ const handleGameSearch = function () {
 		this.join(`game${currentRoomId}`)
 	}
 	debug("Specific room:", JSON.stringify(rooms[currentRoomId].users))
-	rooms[currentRoomId].users[`user${nextUserId}`] = this.id
+	// Save user in room
+	rooms[currentRoomId].users[this.id] = `user${nextUserId}`
 	// Add 1 to nextUserId so that the next socket id gets a unique identifier
 	nextUserId++
 	debug(rooms)
 	// Emit a message to the current user's room
 	io.in(`game${currentRoomId}`).emit("HiRoom")
+	// Log how many users there are in the room
+	debug("Number of users in the room:", io.sockets.adapter.rooms.get(`game${currentRoomId}`).size)
 }
+
+// // Handle user disconnecting during a game
+// const handleUserDisconnect = (id) => {
+// 	debug(io.sockets.adapter.rooms)
+// }
+
 
 /** 
  * Export controller and attach handlers to events
@@ -49,12 +59,31 @@ module.exports = function (socket, _io) {
 
 	io.on('connection', async () => {
 		debug(`User ${socket.id} connected`)
-		debug(`All clients: `, await io.allSockets())
+		// debug(`All clients: `, await io.allSockets())
+	})
+
+	socket.on('disconnecting', () => {
+		// debug("Rooms user were in:", socket.rooms)
+		// debug("Rooms BEFORE leaving", io.sockets.adapter.rooms)
+		// Disconnect all the users from the rooms that the disconnected user was a part of
+		socket.rooms.forEach(room => {
+			io.in(room).emit("userLeft", "You win because your opponent disconnected")
+			io.socketsLeave(room)
+		})
+		debug("Rooms AFTER leaving", io.sockets.adapter.rooms)
+		
 	})
 
 	socket.on('disconnect', () => {
 		debug(`User ${socket.id} disconnected`)
+		const roomOfUser = rooms.find(room => {
+			console.log(socket.id)
+			return room.users.hasOwnProperty(socket.id)
+		})
+		rooms = rooms.filter(room => room.id !== roomOfUser.id)
+		debug("Rooms array after filter:", rooms)
 	})
+
 
 	socket.on('joinGame', handleGameSearch)
 
