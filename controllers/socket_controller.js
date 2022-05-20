@@ -4,7 +4,7 @@
 
 const debug = require('debug')('battleships-server:socket_controller');
 let io = null; // socket.io server instance
-let rooms = []
+let rooms = {}
 let nextUserId = 0
 let nextRoomId = 0
 let currentRoomId = 0
@@ -15,7 +15,7 @@ const handleGameSearch = function () {
 	// Check for empty room before creating a new one
 	emptyRoomExists = Object.values(rooms).find(room => Object.keys(room.users).length < 2)
 	// if the rooms object is empty or the rooms are all full, save a representation of a new room
-	if (rooms.length === 0 || !emptyRoomExists) {
+	if (Object.keys(rooms).length === 0 || !emptyRoomExists) {
 		// Create and join a room
 		this.join(`game${nextRoomId}`)
 		rooms[nextRoomId] = {
@@ -71,17 +71,25 @@ module.exports = function (socket, _io) {
 			io.socketsLeave(room)
 		})
 		debug("Rooms AFTER leaving", io.sockets.adapter.rooms)
-		
+
 	})
 
 	socket.on('disconnect', () => {
 		debug(`User ${socket.id} disconnected`)
-		const roomOfUser = rooms.find(room => {
-			console.log(socket.id)
+		// find the room the user was in
+		const roomOfUser = Object.values(rooms).find(room => {
 			return room.users.hasOwnProperty(socket.id)
 		})
-		rooms = rooms.filter(room => room.id !== roomOfUser.id)
-		debug("Rooms array after filter:", rooms)
+		if (roomOfUser) {
+			// find the id the user was in
+			const idOfRoom = Object.keys(rooms).find(key => rooms[key] === roomOfUser)
+			// debug(idOfRoom)
+			// delete the room the user was  in
+			delete rooms[idOfRoom]
+			// rooms = rooms.filter(room => room.id !== roomOfUser.id)
+	
+			debug("Rooms after deletion:", rooms)
+		}
 	})
 
 
