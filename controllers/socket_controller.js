@@ -82,6 +82,10 @@ module.exports = function (socket, _io) {
 		// find the key of the room the user was in
 		const idOfRoom = getRoomKey(socket)
 		debug("ID of room on disconnecting:", idOfRoom)
+		//Emit message to user who is left in the room
+		if (idOfRoom) {
+			io.in(rooms[idOfRoom].id).emit("userLeft", "Your opponent left.")
+		}
 
 		debug("Room to disconnect:", rooms[idOfRoom]?.id)
 		// disconnect all users from the socket.io room (which deletes it)
