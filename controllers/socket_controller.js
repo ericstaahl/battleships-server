@@ -24,11 +24,11 @@ const getRoomKey = (socket) => {
 
 // Handle users searching for a game
 const handleGameSearch = function () {
-	// Check for empty room before creating a new one
+	// Check for room with less than 2 users before creating a new one
 	emptyRoomExists = Object.values(rooms).find(room => Object.keys(room.users).length < 2)
 	// if the rooms object is empty or the rooms are all full, save a representation of a new room
 	if (Object.keys(rooms).length === 0 || !emptyRoomExists) {
-		// Create and join a room
+		// Create and join a room (this creates a proper socket.io room)
 		this.join(`game${nextRoomId}`)
 		rooms[nextRoomId] = {
 			id: `game${nextRoomId}`,
@@ -45,7 +45,7 @@ const handleGameSearch = function () {
 		io.in(`game${currentRoomId}`).emit("gameFound")
 	}
 	debug("Specific room:", JSON.stringify(rooms[currentRoomId].users))
-	// Save user in room
+	// Save user in room representation
 	rooms[currentRoomId].users[this.id] = `user${nextUserId}`
 	// Add 1 to nextUserId so that the next socket id gets a unique identifier
 	nextUserId++
@@ -96,7 +96,7 @@ module.exports = function (socket, _io) {
 		debug(`User ${socket.id} disconnected`)
 		// find the key of the room the user was in
 		const idOfRoom = getRoomKey(socket)
-		// delete the room the user was in
+		// delete the representation of the room the user was in
 		if (idOfRoom) {
 			delete rooms[idOfRoom]
 		}
