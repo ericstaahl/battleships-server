@@ -110,4 +110,10 @@ module.exports = function (socket, _io) {
 
 	socket.on('joinGame', handleGameSearch)
 
+	socket.on('coordinates', (coordinates) => {
+		const idOfRoom = getRoomKey(socket)
+		if (idOfRoom) {
+			io.in(rooms[idOfRoom].id).emit("coordinatesFromServer", coordinates)
+		}
+	})
 }
