@@ -113,7 +113,7 @@ module.exports = function (socket, _io) {
 	socket.on('coordinates', (coordinates) => {
 		const idOfRoom = getRoomKey(socket)
 		if (idOfRoom) {
-			io.in(rooms[idOfRoom].id).emit("coordinatesFromServer", coordinates)
+			socket.to(rooms[idOfRoom].id).emit("coordinatesFromServer", coordinates)
 		}
 	})
 }
