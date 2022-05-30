@@ -147,6 +147,8 @@ module.exports = function (socket, _io) {
 		const idOfRoom = getRoomKey(socket);
 		if (idOfRoom) {
 			socket.to(rooms[idOfRoom].id).emit("win");
+			io.in(rooms[idOfRoom].id).emit("matchIsOver");
 		}
+
 	})
 };
