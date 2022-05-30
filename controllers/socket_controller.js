@@ -141,4 +141,12 @@ module.exports = function (socket, _io) {
 			socket.to(rooms[idOfRoom].id).emit("changeTurn", msg);
 		}
 	});
+
+	socket.on('gameOver', () => {
+		debug("The game is over")
+		const idOfRoom = getRoomKey(socket);
+		if (idOfRoom) {
+			socket.to(rooms[idOfRoom].id).emit("win");
+		}
+	})
 };
