@@ -135,6 +135,15 @@ module.exports = function (socket, _io) {
 		}
 	});
 
+	socket.on("resultOfHit", (result) => {
+		const idOfRoom = getRoomKey(socket);
+		if (idOfRoom) {
+			socket
+				.to(rooms[idOfRoom].id)
+				.emit("resultOfHit", result);
+		}
+	});
+
 	socket.on("madeMyMove", (msg) => {
 		const idOfRoom = getRoomKey(socket);
 		if (idOfRoom) {
