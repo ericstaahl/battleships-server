@@ -141,6 +141,9 @@ module.exports = function (socket, _io) {
 			socket
 				.to(rooms[idOfRoom].id)
 				.emit("resultOfHit", result);
+			socket
+				.to(rooms[idOfRoom].id)
+				.emit("shipsLeft", result);
 		}
 	});
 
