@@ -74,11 +74,6 @@ const handleGameSearch = function () {
 	io.in(`game${currentRoomId}`).emit("playerTurn", id[turn]);
 };
 
-// // Handle user disconnecting during a game
-// const handleUserDisconnect = (id) => {
-// 	debug(io.sockets.adapter.rooms)
-// }
-
 /**
  * Export controller and attach handlers to events
  *
@@ -89,13 +84,9 @@ module.exports = function (socket, _io) {
 
 	io.on("connection", async () => {
 		debug(`User ${socket.id} connected`);
-		// debug(`All clients: `, await io.allSockets())
 	});
 
 	socket.on("disconnecting", () => {
-		// debug("Rooms user were in:", socket.rooms)
-		// debug("Rooms BEFORE leaving", io.sockets.adapter.rooms)
-
 		// find the key of the room the user was in
 		const idOfRoom = getRoomKey(socket);
 		debug("ID of room on disconnecting:", idOfRoom);
@@ -124,9 +115,12 @@ module.exports = function (socket, _io) {
 		debug("Rooms after deletion:", rooms);
 	});
 
+	// Run the handleGameSearch function when a user wants to join a game
 	socket.on("joinGame", handleGameSearch);
 
 	socket.on("coordinates", (coordinates) => {
+		// Recieve the coordinates that the user has choosen to attack
+		// Then send them to the other user so that they can be checked against their fleet.
 		const idOfRoom = getRoomKey(socket);
 		if (idOfRoom) {
 			socket
@@ -138,6 +132,7 @@ module.exports = function (socket, _io) {
 	socket.on("resultOfHit", (result) => {
 		const idOfRoom = getRoomKey(socket);
 		if (idOfRoom) {
+			//Emit the result of the attack to the user who sent it
 			socket
 				.to(rooms[idOfRoom].id)
 				.emit("resultOfHit", result);
@@ -150,6 +145,7 @@ module.exports = function (socket, _io) {
 	socket.on("madeMyMove", (msg) => {
 		const idOfRoom = getRoomKey(socket);
 		if (idOfRoom) {
+			// Emit to the other user that its their turn
 			socket.to(rooms[idOfRoom].id).emit("changeTurn", msg);
 		}
 	});
@@ -158,9 +154,14 @@ module.exports = function (socket, _io) {
 		debug("The game is over")
 		const idOfRoom = getRoomKey(socket);
 		if (idOfRoom) {
+			// Emit to the winner of the room that their opponent has lost 
+			// (since there are no ships left for the other user.)
 			socket.to(rooms[idOfRoom].id).emit("win");
+			// Emit to all in the room that the match is over.
 			io.in(rooms[idOfRoom].id).emit("matchIsOver");
+			// Remove all users from the room (which deletes it)
 			io.socketsLeave(rooms[idOfRoom].id);
+			// Delete the representation of the room.
 			delete rooms[idOfRoom];
 		}
 
