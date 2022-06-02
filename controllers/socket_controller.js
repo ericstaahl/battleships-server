@@ -160,6 +160,8 @@ module.exports = function (socket, _io) {
 		if (idOfRoom) {
 			socket.to(rooms[idOfRoom].id).emit("win");
 			io.in(rooms[idOfRoom].id).emit("matchIsOver");
+			io.socketsLeave(rooms[idOfRoom].id);
+			delete rooms[idOfRoom];
 		}
 
 	})
